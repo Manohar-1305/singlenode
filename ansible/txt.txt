@@ -1,0 +1,1 @@
+ansible-playbook -i inventories/inventory.ini k8s.yaml --ssh-extra-args="-o StrictHostKeyChecking=no"
