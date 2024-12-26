@@ -1,0 +1,19 @@
+---
+- name: Copy kubectl aliases to the nodes
+  copy:
+    src: kubectl_aliases.sh
+    dest: /tmp/kubectl_aliases.sh
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+
+- name: Append kubectl aliases to .bashrc
+  lineinfile:
+    path: ~/.bashrc
+    line: "source /tmp/kubectl_aliases.sh"
+    state: present
+
+- name: Reload .bashrc for kubectl aliases
+  shell: source ~/.bashrc
+  args:
+    executable: /bin/bash
