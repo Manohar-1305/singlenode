@@ -1,6 +1,6 @@
 ---
 - name: install argocd
-  hosts: k8s_node
+  hosts: master
   become: yes
   tasks:
     - name: Install argocd
