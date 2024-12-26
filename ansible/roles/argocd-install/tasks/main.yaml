@@ -8,7 +8,6 @@
   command: helm repo update
 
 - name: Install or upgrade Argo CD using Helm
-  delegate: local
   command: |
     helm upgrade {{ argo_release_name }} {{ argo_chart_name }} \
     --set server.service.type={{ argo_service_type }} \
