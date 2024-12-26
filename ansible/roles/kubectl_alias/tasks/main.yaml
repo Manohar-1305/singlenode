@@ -9,11 +9,12 @@
 
 - name: Append kubectl aliases to .bashrc
   lineinfile:
-    path: ~/.bashrc
+    path: "{{ ansible_env.HOME }}/.bashrc"
     line: "source /tmp/kubectl_aliases.sh"
     state: present
 
-- name: Reload .bashrc for kubectl aliases
-  shell: source ~/.bashrc
+- name: Source kubectl aliases for current session
+  shell: source /tmp/kubectl_aliases.sh
   args:
     executable: /bin/bash
+
