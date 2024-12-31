@@ -1,0 +1,8 @@
+---
+- name: Prepare nodes for running kubernetes
+  hosts: k8s_node
+  become: yes
+  tasks:
+    - name: Import Helm role
+      import_role:
+        name: helm
