@@ -6,7 +6,7 @@
   register: admin_conf_stat
 
 - name: Fetch admin.conf from remote node if not already fetched
-  delegate_to: master1
+  delegate_to: master
   become: yes
   fetch:
     remote_src: yes
@@ -16,7 +16,7 @@
   when: not admin_conf_stat.stat.exists
 
 - name: Fetch Kubernetes config from remote node
-  delegate_to: master1
+  delegate_to: master
   fetch:
     src: /tmp/admin.conf
     dest: "{{ kube_config_file }}"
