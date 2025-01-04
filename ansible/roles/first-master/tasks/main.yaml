@@ -20,7 +20,7 @@
   register: kubeadm_config
 
 - name: Debug kubeadm config existence
-  delegate_to: local
+  delegate_to: master
   debug:
     msg: "Kubeadm config file exists: {{ kubeadm_config.stat.exists }}"
 
