@@ -1,9 +1,11 @@
-- name: Fetch admin.conf
-  ansible.builtin.copy:
+- name: Fetch admin.conf from master to control node
+  ansible.builtin.fetch:
     src: /etc/kubernetes/admin.conf
     dest: /tmp/admin.conf
-  delegate_to: localhost
+    flat: yes
+  delegate_to: "{{ groups['master'][0] }}"  # This uses the first host in the 'master' group
   become: true
+
 - name: Uninstall existing cert-manager if any
   command:
     cmd: helm uninstall cert-manager -n cert-manager
