@@ -1,4 +1,4 @@
-
+---
 - name: Set ownership and permissions of fetched config file on Ansible control node
   file:
     path: "{{ kube_config_file }}"
