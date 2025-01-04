@@ -3,4 +3,4 @@
   hosts: master1
   become: yes
   roles:
-    - ebs_csi_driver
+    - ebs-csi-driver
