@@ -13,13 +13,30 @@
   failed_when: storageclass_check.rc not in [0, 1]
   changed_when: False
 
+- name: Debug storageclass.yaml.j2 path
+  debug:
+    msg: "Template file path: /home/ansible-user/singlenode/ansible/roles/ebs-csi-driver/templates/storageclass.yaml.j2"
+
+
+- name: Check if storageclass.yaml exists on the remote server
+  stat:
+    path: /tmp/storageclass.yaml
+  register: storageclass_check
+
+- name: Remove existing /tmp/storageclass.yaml if it exists
+  file:
+    path: /tmp/storageclass.yaml
+    state: absent
+  ignore_errors: yes
+
 - name: Copy StorageClass template to remote if it does not exist
   template:
-    src: /home/ansible-user/singlenode/ansible/roles/ebs_csi_driver/templates/storageclass.yaml.j2
+    src: "{{ playbook_dir }}/roles/ebs-csi-driver/templates/storageclass.yaml.j2"
     dest: /tmp/storageclass.yaml
-  when: storageclass_check.rc == 1
+  when: storageclass_check.stat.exists == False
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
+
 
 - name: Copy kubeconfig to remote
   copy:
@@ -27,12 +44,16 @@
     dest: /home/ansible-user/.kube/config
     mode: '0644'
 
+- name: Debug storageclass_check stat.exists
+  debug:
+    msg: "storageclass_check.stat.exists: {{ storageclass_check.stat.exists }}"
+
 - name: Apply StorageClass if it does not exist
   command:
     cmd: kubectl apply -f /tmp/storageclass.yaml
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
-  when: storageclass_check.rc == 1
+  when: storageclass_check.stat.exists == False
 
 - name: Check if StorageClass exists
   command: kubectl get storageclass gp2 --kubeconfig /home/ansible-user/.kube/config
@@ -45,32 +66,16 @@
     var: storageclass_check
 
 # Check if PersistentVolumeClaim ebs-pvc exists
-- name: Check if PersistentVolumeClaim ebs-pvc exists
-  command: "kubectl get pvc ebs-pvc"
+- name: Check if persistentvolumeclaim.yaml exists on the remote node
+  stat:
+    path: /tmp/persistentvolumeclaim.yaml
   register: pvc_check
-  environment:
-    KUBECONFIG: /home/ansible-user/.kube/config
-  failed_when: pvc_check.rc not in [0, 1]
-  changed_when: False
 
-# Debug the value of pvc_check for troubleshooting
-- name: Debug pvc_check output
-  debug:
-    var: pvc_check
-
-# Create PersistentVolumeClaim if it does not exist
 - name: Create PersistentVolumeClaim if it does not exist
   template:
-    src: /home/ansible-user/ansible-playbook-k8s-installation/roles/ebs_csi_driver/templates/persistentvolumeclaim.yaml.j2
+    src: "templates/persistentvolumeclaim.yaml.j2"
     dest: /tmp/persistentvolumeclaim.yaml
-  when: pvc_check.rc == 1
+  when: pvc_check.stat.exists == false
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
-
-# Apply PersistentVolumeClaim if it does not exist
-- name: Apply PersistentVolumeClaim if it does not exist
-  command: "kubectl apply -f /tmp/persistentvolumeclaim.yaml"
-  environment:
-    KUBECONFIG: /home/ansible-user/.kube/config
-  when: pvc_check.rc == 1
 
