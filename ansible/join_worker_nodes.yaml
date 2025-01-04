@@ -3,8 +3,8 @@
   hosts: local
   become: yes
   tasks:
-    - name: Generate kubeadm join command with token
-      command: kubeadm token create --print-join-command
+    - name: Generate kubeadm join command with token --kubeconfig /home/ansible-user/.kube/config
+      command: kubeadm token create --print-join-command 
       register: join_command_output
       changed_when: false
 
