@@ -1,11 +1,11 @@
 
----
 - name: Set ownership and permissions of fetched config file on Ansible control node
-  delegate_to: master1
   file:
     path: "{{ kube_config_file }}"
     owner: ansible-user
     group: ansible-user
     mode: "0644"
     state: file
+  delegate_to: localhost
+  when: kube_config_file is defined and admin_conf_stat.stat.exists
 
