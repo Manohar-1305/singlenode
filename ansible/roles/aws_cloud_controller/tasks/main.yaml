@@ -29,6 +29,8 @@
     cmd: "kubectl create -k ."
   args:
     chdir: /tmp/cloud-provider-aws/examples/existing-cluster/base
+  environment:
+    KUBECONFIG: /home/ansible-user/.kube/config
 
 - name: Check if AWS Cloud Controller Manager pods are running
   command: "kubectl get pods -n kube-system -l app=aws-cloud-controller-manager"
