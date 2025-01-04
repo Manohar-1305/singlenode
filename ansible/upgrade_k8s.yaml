@@ -1,0 +1,80 @@
+---
+- name: Upgrade Kubernetes Control Plane
+  hosts: master
+  serial: 1
+  become: yes
+  vars:
+    kubeadm_version: "1.29.3-1.1"
+    kube_version: "1.29.3"
+
+  tasks:
+    - name: Display current kubeadm version
+      shell: kubeadm version -o json
+      register: kubeadm_version_output
+    - debug:
+        var: kubeadm_version_output.stdout
+
+    - name: Unhold kubeadm
+      shell: sudo apt-mark unhold kubeadm
+
+    - name: Show kubeadm versions available
+      shell: sudo apt-cache madison kubeadm | tac
+      register: kubeadm_versions
+    - debug:
+        var: kubeadm_versions.stdout
+
+    - name: Update package lists
+      apt:
+        update_cache: yes
+
+    - name: Install specific kubeadm version
+      apt:
+        name: "kubeadm={{ kubeadm_version }}"
+        state: present
+
+    - name: Hold kubeadm
+      shell: sudo apt-mark hold kubeadm
+
+    - name: Display kubeadm upgrade plan
+      shell: sudo kubeadm upgrade plan
+      register: upgrade_plan
+    - debug:
+        var: upgrade_plan.stdout
+
+    - name: Apply kubeadm upgrade
+      shell: sudo kubeadm upgrade apply v{{ kube_version }}
+
+    - name: Drain the control plane node
+      shell: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
+
+    - name: Unhold kubelet and kubectl
+      shell: sudo apt-mark unhold kubelet kubectl
+
+    - name: Update package lists for kubelet and kubectl
+      apt:
+        update_cache: yes
+
+    - name: Install specific kubelet and kubectl versions
+      apt:
+        name:
+          - "kubelet={{ kubeadm_version }}"
+          - "kubectl={{ kubeadm_version }}"
+        state: present
+
+    - name: Hold kubelet and kubectl
+      shell: sudo apt-mark hold kubelet kubectl
+
+    - name: Restart kubelet service
+      systemd:
+        name: kubelet
+        state: restarted
+        enabled: yes
+
+    - name: Uncordon the control plane node
+      shell: kubectl uncordon {{ inventory_hostname }}
+
+    - name: Get the status of all nodes
+      shell: kubectl get nodes
+      register: node_status
+    - debug:
+        var: node_status.stdout
