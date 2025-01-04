@@ -6,6 +6,6 @@
     group: ansible-user
     mode: "0644"
     state: file
-  delegate_to: localhost
+  delegate_to: local
   when: kube_config_file is defined and admin_conf_stat.stat.exists
 
