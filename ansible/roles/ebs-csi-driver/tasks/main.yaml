@@ -1,45 +1,48 @@
-# Ensure that kubectl is installed
+---
 - name: Ensure that kubectl is installed
   command: "which kubectl"
   register: kubectl_check
   changed_when: False
   failed_when: kubectl_check.rc != 0
 
-# Check if the EBS CSI driver was applied successfully
-- name: Check EBS CSI Driver installation result
-  debug:
-    msg: "{{ kubectl_apply_output.stdout | default('No output available') }}"
-  when: kubectl_apply_output is defined and kubectl_apply_output.rc == 0
-
-# Debug EBS CSI driver installation error
-- name: Debug EBS CSI driver installation error
-  debug:
-    msg: "{{ kubectl_apply_output.stderr | default('No error output available') }}"
-  when: kubectl_apply_output is defined and kubectl_apply_output.rc != 0
-
-# Check if StorageClass gp2 exists
 - name: Check if StorageClass gp2 exists
   command: "kubectl get storageclass gp2"
   register: storageclass_check
   environment:
-    KUBECONFIG: /home/ansible-user/.kube/config
+    KUBECONFIG: "/home/ansible-user/.kube/config"
   failed_when: storageclass_check.rc not in [0, 1]
   changed_when: False
 
-# Create and apply StorageClass if it does not exist
-- name: Create and apply StorageClass if it does not exist
+- name: Copy StorageClass template to remote if it does not exist
   template:
-    src: /home/ansible-user/ansible-playbook-k8s-installation/roles/ebs_csi_driver/templates/storageclass.yaml.j2
+    src: /home/ansible-user/singlenode/ansible/roles/ebs_csi_driver/templates/storageclass.yaml.j2
     dest: /tmp/storageclass.yaml
   when: storageclass_check.rc == 1
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
 
+- name: Copy kubeconfig to remote
+  copy:
+    src: /home/ansible-user/.kube/config
+    dest: /home/ansible-user/.kube/config
+    mode: '0644'
+
 - name: Apply StorageClass if it does not exist
-  command: "kubectl apply -f /tmp/storageclass.yaml"
+  command:
+    cmd: kubectl apply -f /tmp/storageclass.yaml
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
   when: storageclass_check.rc == 1
+
+- name: Check if StorageClass exists
+  command: kubectl get storageclass gp2 --kubeconfig /home/ansible-user/.kube/config
+  register: storageclass_check
+  failed_when: false
+  changed_when: false
+
+- name: Debug output of storageclass_check
+  debug:
+    var: storageclass_check
 
 # Check if PersistentVolumeClaim ebs-pvc exists
 - name: Check if PersistentVolumeClaim ebs-pvc exists
@@ -49,6 +52,11 @@
     KUBECONFIG: /home/ansible-user/.kube/config
   failed_when: pvc_check.rc not in [0, 1]
   changed_when: False
+
+# Debug the value of pvc_check for troubleshooting
+- name: Debug pvc_check output
+  debug:
+    var: pvc_check
 
 # Create PersistentVolumeClaim if it does not exist
 - name: Create PersistentVolumeClaim if it does not exist
@@ -65,3 +73,4 @@
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
   when: pvc_check.rc == 1
+
