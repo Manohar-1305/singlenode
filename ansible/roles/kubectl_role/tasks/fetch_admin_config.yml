@@ -5,15 +5,15 @@
     path: /etc/kubernetes/admin.conf
   register: admin_conf_stat
 
-- name: Fetch admin.conf from remote node if not already fetched
-  delegate_to: master
-  become: yes
+- name: Fetch admin.conf from master if not already fetched
   fetch:
     remote_src: yes
     src: /etc/kubernetes/admin.conf
     dest: /tmp/admin.conf
     flat: yes
   when: not admin_conf_stat.stat.exists
+  delegate_to: "{{ groups['master'][0] }}"
+
 
 - name: Fetch Kubernetes config from remote node
   delegate_to: master
