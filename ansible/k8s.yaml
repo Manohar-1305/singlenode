@@ -18,4 +18,5 @@
 - import_playbook: nfs.yaml hostlist=nfs
 - import_playbook: nfs-setup.yaml hostlist=master,node
 - import_playbook: ebs-csi-role.yaml hostlist=master
+- import_playbook: upgrade_k8s.yaml hostlist=master
 
