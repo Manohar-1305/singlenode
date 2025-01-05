@@ -52,7 +52,7 @@
         var: upgrade_plan.stdout
 
     - name: Apply kubeadm upgrade
-      shell: sudo kubeadm upgrade apply v{{ kube_version }}
+      shell: sudo kubeadm upgrade apply v{{ kube_version }} -y
 
     - name: Drain the control plane node
       shell: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
