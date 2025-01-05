@@ -1,6 +1,6 @@
 ---
 - name: Label control-plane nodes
-  hosts: master1
+  hosts: master
   tasks:
     - name: Get list of control-plane nodes
       shell: kubectl get nodes | grep control-plane | awk '{print $1}'
