@@ -4,13 +4,14 @@
   serial: 1
   become: yes
   vars:
-    kubeadm_version: "1.29.3-1.1"
-    kube_version: "1.29.3"
+    kubeadm_version: "1.29.12-1.1"
+    kube_version: "1.29.12"
 
   tasks:
     - name: Display current kubeadm version
       shell: kubeadm version -o json
       register: kubeadm_version_output
+
     - debug:
         var: kubeadm_version_output.stdout
 
@@ -24,10 +25,10 @@
         line: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /'
         backrefs: yes
 
-
     - name: Show kubeadm versions available
       shell: sudo apt-cache madison kubeadm | tac
       register: kubeadm_versions
+
     - debug:
         var: kubeadm_versions.stdout
 
@@ -46,6 +47,7 @@
     - name: Display kubeadm upgrade plan
       shell: sudo kubeadm upgrade plan
       register: upgrade_plan
+
     - debug:
         var: upgrade_plan.stdout
 
@@ -84,5 +86,7 @@
     - name: Get the status of all nodes
       shell: kubectl get nodes
       register: node_status
+
     - debug:
         var: node_status.stdout
+
