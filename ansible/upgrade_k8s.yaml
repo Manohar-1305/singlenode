@@ -17,6 +17,14 @@
     - name: Unhold kubeadm
       shell: sudo apt-mark unhold kubeadm
 
+    - name: Update version in Kubernetes sources list
+      lineinfile:
+        path: /etc/apt/sources.list.d/kubernetes.list
+        regexp: '^(deb \[signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg\] https://pkgs.k8s.io/core:/stable:/)v1.28(/deb/ /)$'
+        line: 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /'
+        backrefs: yes
+
+
     - name: Show kubeadm versions available
       shell: sudo apt-cache madison kubeadm | tac
       register: kubeadm_versions
