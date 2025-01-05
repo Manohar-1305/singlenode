@@ -54,8 +54,16 @@
     - name: Apply kubeadm upgrade
       shell: sudo kubeadm upgrade apply v{{ kube_version }} -y
 
+    - name: Get the correct node name for kubectl drain
+      shell: kubectl get nodes -o custom-columns=":metadata.name" | grep {{ inventory_hostname }}
+      register: node_name
+      failed_when: node_name.stdout == ""
+
     - name: Drain the control plane node
-      shell: kubectl drain {{ inventory_hostname }} --ignore-daemonsets --delete-emptydir-data
+      shell: kubectl drain {{ node_name.stdout }} --ignore-daemonsets --delete-emptydir-data
+      register: drain_output
+      failed_when: "'error' in drain_output.stderr"
+
 
     - name: Unhold kubelet and kubectl
       shell: sudo apt-mark unhold kubelet kubectl
