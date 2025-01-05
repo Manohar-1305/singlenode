@@ -19,10 +19,13 @@
     force: yes
 
 - name: Delete existing AWS Cloud Controller Manager manifests if present
-  command: "kubectl delete -k ."
+  command: kubectl delete -k .
   args:
     chdir: /tmp/cloud-provider-aws/examples/existing-cluster/base
+  environment:
+    KUBECONFIG: /home/ansible-user/.kube/config
   ignore_errors: true  # Ignore errors if no resources are found
+
 
 - name: Apply AWS Cloud Controller Manager manifests
   ansible.builtin.command:
