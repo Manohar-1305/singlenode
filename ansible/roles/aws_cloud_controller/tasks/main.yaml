@@ -35,12 +35,6 @@
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
 
-- name: Check if AWS Cloud Controller Manager pods are running
-  command: "kubectl get pods -n kube-system -l app=aws-cloud-controller-manager"
-  register: ccm_check
-  until: ccm_check.rc == 0
-  retries: 5
-  delay: 30
 
 - name: Debug Cloud Controller Manager installation result
   ansible.builtin.debug:
