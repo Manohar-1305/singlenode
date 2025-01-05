@@ -9,10 +9,6 @@
   debug:
     var: kubeconfig_check
 
-- name: Fail if kubeconfig is missing
-  fail:
-    msg: "Kubeconfig file is missing at /home/ansible-user/.kube/config"
-  when: kubeconfig_check.stat.exists == False
 
 - name: Check if StorageClass gp2 exists
   command: "kubectl get storageclass gp2"
@@ -40,6 +36,17 @@
   when: storageclass_file_check.stat.exists == False
   environment:
     KUBECONFIG: /home/ansible-user/.kube/config
+- name: Ensure kubeconfig directory exists on target
+  file:
+    path: /home/ansible-user/.kube
+    state: directory
+    mode: '0755'
+
+- name: Copy kubeconfig file to target
+  copy:
+    src: /home/ansible-user/.kube/config
+    dest: /home/ansible-user/.kube/config
+    mode: '0600'
 
 - name: Apply StorageClass if it does not exist
   command:
@@ -49,7 +56,6 @@
     KUBECONFIG: /home/ansible-user/.kube/config
 
 # Check if PersistentVolumeClaim ebs-pvc exists
-# Step 1: Check if the PersistentVolumeClaim exists
 - name: Check if PersistentVolumeClaim exists
   command: kubectl get pvc ebs-pvc --kubeconfig /home/ansible-user/.kube/config
   register: pvc_check
@@ -59,6 +65,12 @@
 - name: Debug output of pvc_check
   debug:
     var: pvc_check
+
+- name: Render PersistentVolumeClaim template
+  template:
+    src: persistentvolumeclaim.yaml.j2  # Template file in 'templates' folder
+    dest: /tmp/persistentvolumeclaim.yaml
+    mode: '0644'
 
 - name: Create PersistentVolumeClaim if it does not exist
   command: kubectl apply -f /tmp/persistentvolumeclaim.yaml --kubeconfig /home/ansible-user/.kube/config
@@ -71,20 +83,3 @@
 - name: Debug output of pvc_creation
   debug:
     var: pvc_creation
-
-# Step 3: Wait for PVC to be applied (if needed)
-- name: Wait for PVC to be created (optional)
-  pause:
-    seconds: 5  # Adjust time if needed to allow Kubernetes to process
-
-# Step 4: Verify PVC exists after creation
-- name: Verify PersistentVolumeClaim exists after creation
-  command: kubectl get pvc ebs-pvc --kubeconfig /home/ansible-user/.kube/config
-  register: pvc_check_after_creation
-  failed_when: false
-  changed_when: false
-
-- name: Debug output of pvc_check_after_creation
-  debug:
-    var: pvc_check_after_creation
-
