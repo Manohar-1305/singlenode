@@ -8,26 +8,29 @@
 - name: Debug - Print result of kubeconfig check
   debug:
     var: kubeconfig_check
-    
+
 - name: Add AWS EBS CSI Driver Helm repository
-  shell: helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-  args:
-    warn: false
+  command: >
+    helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
   register: helm_repo_add
+  failed_when: helm_repo_add.rc != 0
   changed_when: "'added' in helm_repo_add.stdout or 'updated' in helm_repo_add.stdout"
+  ignore_errors: false
+
 
 - name: Update Helm repositories
-  shell: helm repo update
-  args:
-    warn: false
+  command: helm repo update
+  register: helm_repo_update
+  changed_when: "'Update Complete' in helm_repo_update.stdout"
 
 - name: Install or upgrade AWS EBS CSI Driver
-  shell: >
+  command: >
     helm upgrade --install aws-ebs-csi-driver
     --namespace kube-system
     aws-ebs-csi-driver/aws-ebs-csi-driver
-  args:
-    warn: false
+  register: helm_install
+  failed_when: helm_install.rc != 0
+  changed_when: "'deployed' in helm_install.stdout or 'updated' in helm_install.stdout"
 
 - name: Check for AWS EBS CSI Driver pods
   shell: kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
