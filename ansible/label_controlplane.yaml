@@ -1,11 +1,12 @@
----
 - name: Label control-plane nodes
   hosts: master
+  become: true
   tasks:
     - name: Get list of control-plane nodes
-      shell: kubectl get nodes | grep control-plane | awk '{print $1}'
+      shell: kubectl get nodes --no-headers | grep control-plane | awk '{print $1}'
       register: control_plane_nodes
       changed_when: false
+      failed_when: control_plane_nodes.stdout == ""
 
     - name: Debug control-plane nodes
       debug:
@@ -14,4 +15,9 @@
     - name: Label each control-plane node
       shell: kubectl label node {{ item }} node-role.kubernetes.io/control-plane="" --overwrite
       loop: "{{ control_plane_nodes.stdout_lines }}"
-      ignore_errors: true
+      register: label_results
+      failed_when: label_results is failed
+
+    - name: Display labeling results
+      debug:
+        var: label_results.results
