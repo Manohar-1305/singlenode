@@ -1,0 +1,12 @@
+FROM golang:1.21 as builder
+
+WORKDIR /workspace
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o controller .
+
+FROM gcr.io/distroless/static:nonroot
+WORKDIR /
+COPY --from=builder /workspace/controller .
+USER 65532:65532
+
+ENTRYPOINT ["/controller"]

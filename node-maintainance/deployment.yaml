@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-maintenance-controller
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: node-maintenance-controller
+  template:
+    metadata:
+      labels:
+        app: node-maintenance-controller
+    spec:
+      serviceAccountName: node-maintenance-controller
+      containers:
+      - name: controller
+        image: node-maintenance-controller:latest
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi

@@ -1,0 +1,10 @@
+apiVersion: ops.k8s.io/v1
+kind: NodeMaintenance
+metadata:
+  name: worker-node-1-maintenance
+spec:
+  nodeName: worker-node-1
+  reason: "Kernel upgrade and security patches"
+  startTime: "2024-01-20T10:00:00Z"
+  duration: "2h"
+  drain: true
