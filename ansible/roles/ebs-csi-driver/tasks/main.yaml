@@ -8,6 +8,35 @@
 - name: Debug - Print result of kubeconfig check
   debug:
     var: kubeconfig_check
+    
+- name: Add AWS EBS CSI Driver Helm repository
+  shell: helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
+  args:
+    warn: false
+  register: helm_repo_add
+  changed_when: "'added' in helm_repo_add.stdout or 'updated' in helm_repo_add.stdout"
+
+- name: Update Helm repositories
+  shell: helm repo update
+  args:
+    warn: false
+
+- name: Install or upgrade AWS EBS CSI Driver
+  shell: >
+    helm upgrade --install aws-ebs-csi-driver
+    --namespace kube-system
+    aws-ebs-csi-driver/aws-ebs-csi-driver
+  args:
+    warn: false
+
+- name: Check for AWS EBS CSI Driver pods
+  shell: kubectl get pods -n kube-system -l app.kubernetes.io/name=aws-ebs-csi-driver
+  register: pod_status
+  changed_when: false
+
+- name: Display the status of AWS EBS CSI Driver pods
+  debug:
+    msg: "{{ pod_status.stdout }}"
 
 
 - name: Check if StorageClass gp2 exists
