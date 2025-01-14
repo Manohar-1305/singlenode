@@ -1,0 +1,33 @@
+---
+- name: Install NGINX Ingress Controller with Annotation
+  hosts: k8s_master
+  become: yes
+  tasks:
+    - name: Ensure kubectl is installed
+      command: kubectl version --client=true
+      register: kubectl_check
+      failed_when: kubectl_check.rc != 0
+      changed_when: false
+
+    - name: Apply NGINX Ingress deployment
+      command: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
+      register: apply_result
+
+    - name: Wait for ingress-nginx namespace to be created
+      command: kubectl get namespace ingress-nginx
+      register: namespace_check
+      retries: 10
+      delay: 10
+      until: namespace_check.rc == 0
+
+    - name: Add annotation to Service for NLB
+      command: >
+        kubectl annotate svc ingress-nginx-controller
+        -n ingress-nginx
+        service.beta.kubernetes.io/aws-load-balancer-type=nlb
+        --overwrite
+      register: annotate_result
+
+    - name: Show annotation result
+      debug:
+        msg: "{{ annotate_result.stdout }}"
