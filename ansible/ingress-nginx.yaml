@@ -1,6 +1,6 @@
 ---
 - name: Install NGINX Ingress Controller with Annotation
-  hosts: k8s_master
+  hosts: master
   become: yes
   tasks:
     - name: Ensure kubectl is installed
