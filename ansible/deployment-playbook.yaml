@@ -1,0 +1,22 @@
+
+---
+- name: Apply Kubernetes Deployment
+  hosts: local
+  tasks:
+    - name: Ensure kubectl is installed
+      ansible.builtin.command:
+        cmd: kubectl version --client
+      register: kubectl_check
+      failed_when: "'Client Version' not in kubectl_check.stdout"
+
+    - name: Apply Kubernetes deployment
+      ansible.builtin.command:
+        cmd: kubectl apply -f deployment.yaml --kubeconfig=/home/ansible-user/.kube/config
+      args:
+        chdir: "{{ playbook_dir }}"  # Ensures it runs in the directory containing the playbook
+      register: apply_output
+
+    - name: Display output of the apply command
+      ansible.builtin.debug:
+        var: apply_output.stdout
+
