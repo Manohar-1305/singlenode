@@ -13,7 +13,7 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: http-01-production
 spec:
-  ingressClassName: external-nginx
+  ingressClassName: nginx
   rules:
     - host: api.mathews.ltd
       http:
@@ -43,5 +43,5 @@ spec:
     solvers:
       - http01:
           ingress:
-            ingressClassName: external-nginx
+            ingressClassName: nginx
 
