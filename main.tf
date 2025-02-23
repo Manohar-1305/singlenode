@@ -211,7 +211,7 @@ output "node_public_ip" {
 
 output "master_ip" {
   description = "The private IP address of the NFS instance"
-  value       = aws_instance.nfs.private_ip
+  value       = aws_instance.master.private_ip
 }
 resource "aws_security_group" "ssh_web_traffic_sg" {
   name        = "Combined-Security-Group"
